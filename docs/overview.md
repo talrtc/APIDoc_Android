@@ -9,7 +9,7 @@
 [setRole()](./RTCEngine/RTCEngine.md#setrole) | 设置直播场景下的用户角色
 [joinRoom()](./RTCEngine/RTCEngine.md#joinroom) | 加入频道。
 [leaveRoom()](./RTCEngine/RTCEngine.md#leaveroom) | 离开频道。
-[destory()](./RTCEngine/RTCEngine.md#destory) | 销毁 RtcEngine 实例。
+[destroy()](./RTCEngine/RTCEngine.md#destroy) | 销毁 RtcEngine 实例。
 [getConnectionState()](./RTCEngine/RTCEngine.md#getconnectionstate) | 获取连接状态
 [switchChannelWithRealToken()](./RTCEngine/RTCEngine.md#switchchannelwithrealtoken) | 快速切换直播频道
 

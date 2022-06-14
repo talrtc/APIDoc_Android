@@ -357,10 +357,14 @@ public void leaveRoom()
 
 
  离开频道，即挂断或退出通话。<br>
-调用 leaveRoom 后，必须调用 leaveRoom 结束通话，否则无法开始下一次通话。<br>
+调用 joinRoom 后，必须调用 leaveRoom 结束通话，否则无法开始下一次通话。<br>
 不管当前是否在通话中，都可以调用 leaveRoom，没有副作用。<br>
 该方法会把会话相关的所有资源释放掉。该方法是异步操作，调用返回时并没有真正退出频道。<br>
 成功调用该方法离开频道后，本地会触发 didOfflineOfUid 回调；通信场景下的用户和直播场景下的主播离开频道后，远端会触发 didOfflineOfUid 回调。
+
+>  如果你调用了 leaveChannel 后立即调用 destroy 方法，SDK 将无法触发 onLeaveChannel 回调。<br>
+如果你在旁路推流过程中调用了 leaveChannel 方法， SDK 将自动调用 removePublishStreamUrl 方法。
+
 
 **回调**
 
@@ -369,10 +373,10 @@ public void leaveRoom()
 ```
 
 
-## destory()
+## destroy()
 
 
-public void destory()
+public void destroy()
 
 
 **说明**
@@ -380,10 +384,11 @@ public void destory()
 销毁 RtcEngine 实例。
 
 
- 该方法释放 Agora SDK 使用的所有资源。有些 app 只在用户需要时才进行实时音视频通信，不需要时则将资源释放出来用于其他操作，该方法适用于此类情况。调用 destroy 方法后，你将无法再使用 SDK 的其它方法和回调。如需再次使用实时音视频通信功能，你必须重新调用 create 方法创建一个新的 RtcEngine 实例。<br>
-注解<br>
-该方法为同步调用，需要等待 RtcEngine 实例资源释放后才能执行其他操作，所以我们建议在子线程中调用该方法，避免主线程阻塞。此外，我们不建议在 SDK 的回调中调用 destroy，否则由于 SDK 要等待回调返回才能回收相关的对象资源，会造成死锁。<br>
+ 该方法释放 Agora SDK 使用的所有资源。有些 app 只在用户需要时才进行实时音视频通信，不需要时则将资源释放出来用于其他操作，该方法适用于此类情况。调用 destroy 方法后，你将无法再使用 SDK 的其它方法和回调。如需再次使用实时音视频通信功能，你必须重新调用 create 方法创建一个新的 RtcEngine 实例。
+
+>  该方法为同步调用，需要等待 RtcEngine 实例资源释放后才能执行其他操作，所以我们建议在子线程中调用该方法，避免主线程阻塞。此外，我们不建议在 SDK 的回调中调用 destroy，否则由于 SDK 要等待回调返回才能回收相关的对象资源，会造成死锁。<br>
 如需在销毁后再次创建 RtcEngine 实例，需要等待 destroy 方法执行结束后再创建实例。
+
 
 ## enableVideo()
 
@@ -410,15 +415,16 @@ public void enableLocalVideo(boolean enable)
 
 
  该方法禁用或重新启用本地视频采集。不影响接收远端视频。<br>
-调用 enableVideo 后，本地视频即默认开启。 你可以调用 enableLocalVideo(false) 关闭本地视频采集。关闭后如果想重新开启，则可调用 enableLocalVideo(true)。<br>
-注解<br>
-该方法设置的是内部引擎为启用或禁用状态，在 leaveRoom 后仍然有效。
+调用 enableVideo 后，本地视频即默认开启。 你可以调用 enableLocalVideo(false) 关闭本地视频采集。关闭后如果想重新开启，则可调用 enableLocalVideo(true)。
 
 **参数**
 
 变量名 | 描述
 :--- | :---
 enable | 是否启用本地视频：<br>true: 开启本地视频采集和渲染（默认）<br>false: 关闭使用本地摄像头设备。关闭后，远端用户会接收不到本地用户的视频流；但本地用户依然可以接收远端用户的视频流。设置为 false 时，该方法不需要本地有摄像头。
+
+>  该方法设置的是内部引擎为启用或禁用状态，在 leaveRoom 后仍然有效。
+
 
 ## enableLocalAudio()
 
@@ -432,15 +438,16 @@ public void enableLocalAudio(boolean enable)
 
 
  当 app 加入频道时，它的语音功能默认是开启的。该方法可以关闭或重新开启本地语音，即停止或重新开始本地音频采集。<br>
-该方法不影响接收远端音频流，enableLocalAudio(false) 适用于只听不发的用户场景。<br>
-注解<br>
-该方法在加入频道前后均可调用。在加入频道前调用只能设置设备状态，在加入频道后才会立即生效。
+该方法不影响接收远端音频流，enableLocalAudio(false) 适用于只听不发的用户场景。
 
 **参数**
 
 变量名 | 描述
 :--- | :---
 enable | 是否开启本地语音。<br>true:（默认）重新开启本地语音，即开启本地语音采集。<br>false: 关闭本地语音，即停止本地语音采集。
+
+>  该方法在加入频道前后均可调用。在加入频道前调用只能设置设备状态，在加入频道后才会立即生效。
+
 
 ## muteLocalVideo()
 
@@ -454,16 +461,17 @@ public int muteLocalVideo(boolean muted)
 
 
  成功调用该方法后，远端会触发 didVideoMuted 回调。<br>
-同一时间，本地的音视频流只能发布到一个频道。如果你创建了多个频道，请确保你只在一个频道中调用 muteLocalVideo(false)， 否则方法会调用失败并返回 -5 (ERR_REFUSED)。<br>
-注解<br>
-该方法不会改变视频采集设备的使用状态。<br>
-该方法的调用是否生效受 joinRoom 和 setClientRole 方法的影响，
+同一时间，本地的音视频流只能发布到一个频道。如果你创建了多个频道，请确保你只在一个频道中调用 muteLocalVideo(false)， 否则方法会调用失败并返回 -5 (ERR_REFUSED)。
 
 **参数**
 
 变量名 | 描述
 :--- | :---
 muted | 是否取消发布本地视频流。
+
+>  该方法不会改变视频采集设备的使用状态。<br>
+该方法的调用是否生效受 joinRoom 和 setClientRole 方法的影响，
+
 
 **回调**
 
@@ -502,7 +510,7 @@ muted | 是否取消发布本地音频流。<br>true：取消发布。<br>false�
 ## muteRemoteVideo()
 
 
-public void muteRemoteVideo(long uid, boolean enable)
+public void muteRemoteVideo(long uid, boolean muted)
 
 
 **说明**
@@ -517,12 +525,12 @@ public void muteRemoteVideo(long uid, boolean enable)
 变量名 | 描述
 :--- | :---
 uid | 用户ID
-enable | 是否取消订阅指定远端用户的视频流。<br>true: 取消订阅。<br>false: （默认）订阅。
+muted | 是否取消订阅指定远端用户的视频流。<br>true: 取消订阅。<br>false: （默认）订阅。
 
 ## muteRemoteAudio()
 
 
-public void muteRemoteAudio(long uid, boolean enable)
+public void muteRemoteAudio(long uid, boolean muted)
 
 
 **说明**
@@ -537,12 +545,12 @@ public void muteRemoteAudio(long uid, boolean enable)
 变量名 | 描述
 :--- | :---
 uid | 用户ID
-enable | 是否取消订阅指定远端用户的音频流。<br>true：取消订阅。<br>false：（默认）订阅。
+muted | 是否取消订阅指定远端用户的音频流。<br>true：取消订阅。<br>false：（默认）订阅。
 
 ## muteAllRemoteVideo()
 
 
-public void muteAllRemoteVideo(boolean enable)
+public void muteAllRemoteVideo(boolean muted)
 
 
 **说明**
@@ -550,20 +558,21 @@ public void muteAllRemoteVideo(boolean enable)
 取消或恢复订阅所有远端用户的视频流。
 
 
- 成功调用该方法后，本地用户会取消或恢复订阅所有远端用户的视频流，包括在调用该方法后加入频道的用户的视频流。<br>
-注解<br>
-该方法需要在加入频道后调用。
+ 成功调用该方法后，本地用户会取消或恢复订阅所有远端用户的视频流，包括在调用该方法后加入频道的用户的视频流。
 
 **参数**
 
 变量名 | 描述
 :--- | :---
-enable | 是否取消订阅所有远端用户的视频流。<br>true: 取消订阅。<br>false:（默认）订阅。
+muted | 是否取消订阅所有远端用户的视频流。<br>true: 取消订阅。<br>false:（默认）订阅。
+
+>  该方法需要在加入频道后调用。
+
 
 ## muteAllRemoteAudio()
 
 
-public void muteAllRemoteAudio(boolean enable)
+public void muteAllRemoteAudio(boolean muted)
 
 
 **说明**
@@ -577,7 +586,7 @@ public void muteAllRemoteAudio(boolean enable)
 
 变量名 | 描述
 :--- | :---
-enable | 是否取消订阅所有远端用户的音频流。<br>true: 取消订阅。<br>false:（默认）订阅。
+muted | 是否取消订阅所有远端用户的音频流。<br>true: 取消订阅。<br>false:（默认）订阅。
 
 ## setupLocalVideo()
 
@@ -724,9 +733,10 @@ public void stopPreview()
 停止本地视频预览。
 
 
- 调用 startPreview 后，如果你想关闭本地视频预览，请调用 stopPreview。<br>
-注解<br>
-请在加入频道前或离开频道后调用该方法。
+ 调用 startPreview 后，如果你想关闭本地视频预览，请调用 stopPreview。
+
+>  请在加入频道前或离开频道后调用该方法。
+
 
 ## switchCamera()
 
@@ -897,16 +907,17 @@ public void muteVideo(boolean muting)
 
 
  成功调用该方法后，远端会触发 didVideoMuted 回调。<br>
-同一时间，本地的音视频流只能发布到一个频道。如果你创建了多个频道，请确保你只在一个频道中调用 muteLocalVideo(false)， 否则方法会调用失败并返回 -5 (ERR_REFUSED)。<br>
-注解<br>
-该方法不会改变视频采集设备的使用状态。<br>
-该方法的调用是否生效受 joinRoom 和 setClientRole 方法的影响
+同一时间，本地的音视频流只能发布到一个频道。如果你创建了多个频道，请确保你只在一个频道中调用 muteLocalVideo(false)， 否则方法会调用失败并返回 -5 (ERR_REFUSED)。
 
 **参数**
 
 变量名 | 描述
 :--- | :---
 muting | 是否取消发布本地视频流。<br>true：取消发布。<br>false：发布。
+
+>  该方法不会改变视频采集设备的使用状态。<br>
+该方法的调用是否生效受 joinRoom 和 setClientRole 方法的影响
+
 
 **回调**
 
@@ -927,16 +938,17 @@ public void muteAudio(boolean muting)
 
 
  成功调用该方法后，远端会触发 didAudioMuted 回调。<br>
-同一时间，本地的音视频流只能发布到一个频道。如果你创建了多个频道，请确保你只在一个频道中调用 muteLocalVideo(false)，否则方法会调用失败并返回 -5 (ERR_REFUSED)。<br>
-注解<br>
-该方法不会改变音频采集设备的使用状态。<br>
-该方法的调用是否生效受 joinroom 和 setClientRole 方法的影响
+同一时间，本地的音视频流只能发布到一个频道。如果你创建了多个频道，请确保你只在一个频道中调用 muteLocalVideo(false)，否则方法会调用失败并返回 -5 (ERR_REFUSED)。
 
 **参数**
 
 变量名 | 描述
 :--- | :---
 muting | 是否取消发布本地音频流。<br>true：取消发布。<br>false：发布。
+
+>  该方法不会改变音频采集设备的使用状态。<br>
+该方法的调用是否生效受 joinroom 和 setClientRole 方法的影响
+
 
 **回调**
 
@@ -1894,16 +1906,17 @@ public int takeRemoteViewSnapshot(long uid)
 
 
  该方法用于对指定用户的视频流进行截图，生成一张 JPG 格式的图片，并保存至指定的路径。<br>
-该方法是异步操作，调用返回时 SDK 并没有真正获取截图。<br>
-注解<br>
-该方法需要在加入频道后调用。<br>
-如果用户的视频经过前处理，例如，添加了水印或美颜，生成的截图会包含前处理效果。
+该方法是异步操作，调用返回时 SDK 并没有真正获取截图。
 
 **参数**
 
 变量名 | 描述
 :--- | :---
 uid | 用户id
+
+>  该方法需要在加入频道后调用。<br>
+如果用户的视频经过前处理，例如，添加了水印或美颜，生成的截图会包含前处理效果。
+
 
 **返回**
 
@@ -1921,16 +1934,17 @@ public int setupLocalVideo(TextureView view)
 初始化本地视图。
 
 
- 该方法初始化本地视图并设置本地用户视频显示信息，只影响本地用户看到的视频画面，不影响本地发布视频。 调用该方法绑定本地视频流的显示视窗（View），并设置本地用户视图的渲染模式和镜像模式。<br>
-注解<br>
-请在主线程调用该方法。<br>
-如果你希望在通话中更新本地用户视图的渲染或镜像模式，请使用 setLocalRenderMode 方法。
+ 该方法初始化本地视图并设置本地用户视频显示信息，只影响本地用户看到的视频画面，不影响本地发布视频。 调用该方法绑定本地视频流的显示视窗（View），并设置本地用户视图的渲染模式和镜像模式。
 
 **参数**
 
 变量名 | 描述
 :--- | :---
 view | 本地视图view
+
+>  请在主线程调用该方法。<br>
+如果你希望在通话中更新本地用户视图的渲染或镜像模式，请使用 setLocalRenderMode 方法。
+
 
 **返回**
 
